@@ -34,6 +34,7 @@ fun SettingsScreen(vm: MainViewModel, actions: UiActions, modifier: Modifier = M
     val threshold by vm.lowThreshold.collectAsStateWithLifecycle()
     val notifyDisc by vm.notifyDisconnect.collectAsStateWithLifecycle()
     val saveLoc by vm.saveLocation.collectAsStateWithLifecycle()
+    val selected by vm.selected.collectAsStateWithLifecycle()
     val currentLang = vm.settings.language
     val gattLive = gatt.state == GattState.READY || gatt.state == GattState.CONNECTING || gatt.state == GattState.DISCOVERING
 
@@ -57,7 +58,7 @@ fun SettingsScreen(vm: MainViewModel, actions: UiActions, modifier: Modifier = M
                     OutlinedButton(enabled = gattLive, onClick = { vm.disconnectGatt() }) {
                         Text(stringResource(R.string.set_disconnect_gatt))
                     }
-                    Button(enabled = !gattLive && vm.selected.value != null, onClick = { vm.connectGatt() }) {
+                    Button(enabled = !gattLive && selected != null, onClick = { vm.connectGatt() }) {
                         Text(stringResource(R.string.set_reconnect_gatt))
                     }
                 }
