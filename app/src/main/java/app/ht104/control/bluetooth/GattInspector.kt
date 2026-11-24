@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -142,7 +143,7 @@ class GattInspector(private val context: Context) {
         val payload = byteArrayOf(level.toByte())
         val ok = try {
             if (Build.VERSION.SDK_INT >= 33) {
-                g.writeCharacteristic(c, payload, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) == 0
+                g.writeCharacteristic(c, payload, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) == BluetoothStatusCodes.SUCCESS
             } else {
                 legacyWriteNoResponse(g, c, payload)
             }

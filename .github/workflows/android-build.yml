@@ -64,6 +64,10 @@ jobs:
             app/build/reports/lint-results-debug.xml
           if-no-files-found: ignore
 
+      - name: Print lint report on failure
+        if: ${{ failure() && steps.lint.outcome == 'failure' }}
+        run: cat app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt || true
+
       - name: Summarize failures
         if: ${{ failure() }}
         run: |
