@@ -1,6 +1,14 @@
 package app.ht104.control.ui
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.core.app.ActivityCompat
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -53,11 +61,24 @@ fun AppRoot(vm: MainViewModel, onShare: (File, String) -> Unit, onOpenBluetoothS
     var current by rememberSaveable { mutableStateOf(Screen.Dashboard) }
     BackHandler(enabled = current != Screen.Dashboard) { current = Screen.Dashboard }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+    val ctx = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
         vm.onPermissionResult()
+        // If Android (or the vendor ROM) will not show the dialog any more, send the user to the app settings page.
+        val activity = ctx.findActivity()
+        val blocked = result.filterValues { !it }.keys.any { p ->
+            activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(activity, p)
+        }
+        if (blocked) {
+            runCatching {
+                ctx.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null)),
+                )
+            }
+        }
     }
     val actions = UiActions(
-        requestPermissions = { launcher.launch(it.toTypedArray()) },
+        requestPermissions = { if (it.isNotEmpty()) launcher.launch(it.toTypedArray()) },
         openBluetoothSettings = onOpenBluetoothSettings,
         share = onShare,
         openMap = onOpenMap,
@@ -92,4 +113,13 @@ fun AppRoot(vm: MainViewModel, onShare: (File, String) -> Unit, onOpenBluetoothS
             Screen.About -> AboutScreen(modifier)
         }
     }
+}
+
+private fun Context.findActivity(): Activity? {
+    var c: Context? = this
+    while (c is ContextWrapper) {
+        if (c is Activity) return c
+        c = c.baseContext
+    }
+    return null
 }

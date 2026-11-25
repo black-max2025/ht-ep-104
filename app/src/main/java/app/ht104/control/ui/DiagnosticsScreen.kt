@@ -73,7 +73,7 @@ fun DiagnosticsScreen(vm: MainViewModel, actions: UiActions, modifier: Modifier 
                 permissions.forEach { p ->
                     Mono("${if (p.granted) "[ok]    " else "[denied]"} ${p.permission.substringAfterLast('.')}")
                 }
-                Button(onClick = { actions.requestPermissions(PermissionHelper.bluetoothRuntime()) }) {
+                Button(onClick = { actions.requestPermissions(permissions.filter { !it.granted }.map { it.permission }) }) {
                     Text(stringResource(R.string.action_grant))
                 }
             }
